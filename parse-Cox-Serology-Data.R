@@ -51,7 +51,7 @@ Version <- 'v1.9'
 options(warn=1)
 
 ## Enable some DEBUGGING statements if TRUE
-DEBUG <- TRUE
+DEBUG <- FALSE
 
 ## Annotate that DEBUGGING is turned on
 if(DEBUG == TRUE) {
@@ -352,7 +352,6 @@ parseSheet <- function(excelFile, sheetName, trialName, assayName) {
     ## Create pseudo-sheets as subsets of columns based on subAssays, above.
     ## This is new code added with the release of the ELISA data, 2025-03-30.
     ## Note: Loop from row 2 as row 1 contains the fixed info: SubjectID, Trial, etc
-    # browser()
     result <- NULL
     for(i in 2:nrow(subAssays)) {
         columnInx <- c(subAssays$Start[1]:subAssays$End[1],
@@ -393,7 +392,7 @@ parseSheet <- function(excelFile, sheetName, trialName, assayName) {
     ##
     ## With the data extracted, we'll now cut it out (remove rows) from 'result'.
     if(sheetName == "QIV1-ATW HI") {
-        badStrain <- "A/Brisbane/02/2018 (H1N1)"
+        badStrain <- "A/Brisbane/2/2018 (H1N1)"
         ## Index to select the Trial & Assay & Strain. Do Not Care: Subject, Day, Value.
         inxBad <- (result$Trial == 'QIV1') & (result$Assay == 'HI') & (result$Strain == badStrain)
 
@@ -412,7 +411,7 @@ parseSheet <- function(excelFile, sheetName, trialName, assayName) {
                 dupStrain <- c(dupStrain, strain)
             }
         }
-        cat("\tData for strain=", badStrain, "duplicated from:", paste(dupStrain, collapse=', '), "\n")
+        cat("\n\tData for strain=", badStrain, "duplicated from:", paste(dupStrain, collapse=', '), "\n")
 
         if( !is.null(dupStrain) ) {
             cat("\nFix Issue #4: QIV1-ATW HI duplicated data:",
@@ -786,10 +785,6 @@ readDataSheet <- function(excelFile, sheetName) {
 #' @param sheet is a tibble returned by 'readDataSheet()'
 #' @param colPattern is a data.frame returned by 'getColumnPatterns()'
 #' @return updated sheet with 'character' column set to 'double'
-#'
-#' This code exists for compareQIV2sheets but may be applied elsewhere.
-#' Since it is needed twice for compareQIV2sheets, it has been collected
-#' here.
 fixSheetColumn <- function(sheetName, sheet, colPattern) {
     ## Fix: Columns of 'Day-NN' data should be numeric. Find and change non-numeric data.
     inxDayCol <- grepl('^D[0-9]+', colPattern$NewNames)
@@ -798,108 +793,12 @@ fixSheetColumn <- function(sheetName, sheet, colPattern) {
         for(i in which(inxNonDouble)) {
             inxNonNumb <- (!is.na(sheet[, i, drop=TRUE])) & (grepl('^[0-9]+$', sheet[, i, drop=TRUE]) == FALSE)
             cat("*** Sheet:", sheetName, "column: ", i, "(", ExcelColumns[i], ") is non-numeric.\n",
-                "\tData error in row(s):", paste(which(inxNonNumb), collapse=', '), "\n")
+                "\tData error in row(s):", paste(which(inxNonNumb), collapse=', '), "\n\tChanging to 'NA'.\n")
             sheet[inxNonNumb, i] <- NA   # Fix the non-numeric value
             sheet[, i] <- as.numeric(sheet[, i, drop=TRUE])
         }
     }
     return(sheet)
-}
-
-##----------------------------------------------------------------------
-#' compareQIV2sheets - datasets are separated for viewing, but should be the same sheet
-#'
-#' @param excelFile is the name of the file from which the sheets are read
-#' @param sheets is a data frame of available sheets
-#' @param sheetNames is a character vector of the sheets to merge
-#' @return data frame ?
-compareQIV2sheets <- function(excelFile, sheets, sheetNames) {
-    stopifnot(is.data.frame(sheets),
-              'SheetName' %in% colnames(sheets),
-              length(sheetNames) == 2,
-              sheetNames %in% sheets$SheetName
-              )
-
-    ## Collect the two sheets Strains - ensure they match
-    strains1 <- parseVirusRow(excelFile, sheetNames[1])
-    strains2 <- parseVirusRow(excelFile, sheetNames[2])
-    stopifnot(strains1$Strain == strains2$Strain)
-
-    ## Read in the two sheets
-    sheet1  <- readDataSheet(excelFile, sheetNames[1])
-    colPat1 <- getColumnPatterns(sheet1)
-    sheet2  <- readDataSheet(excelFile, sheetNames[2])
-    colPat2 <- getColumnPatterns(sheet2)
-
-    ## Fix: Columns of 'Day-NN' data should be numeric. Find and change non-numeric data.
-    sheet1  <- fixSheetColumn(sheetNames[1], sheet1, colPat1)
-    colPat1 <- getColumnPatterns(sheet1)
-    sheet2  <- fixSheetColumn(sheetNames[2], sheet2, colPat2)
-    colPat2 <- getColumnPatterns(sheet2)
-
-    ## Expect that the non-Repeat column names are identical (SubSheet == 0)
-    inx1 <- colPat1$SubSheet == 0
-    inx2 <- is.finite(colPat2$SubSheet) & colPat2$SubSheet == 0
-    stopifnot(colPat1$ColNames[inx1] == colPat2$ColNames[inx2])
-
-    ## Check that the data in the two sheets in non-Repeat columns is identical
-    for(nm in colPat1$ColNames[inx1]) {
-        if(any(sheet1[[nm]] != sheet2[[nm]]) ) {
-            inx <- sheet1[[nm]] != sheet2[[nm]]
-            cat("mergeQIV2: column:", nm, "differs:\n",
-                wrapText(paste0("(", sheet1[[nm]][inx], ', ', sheet2[[nm]][inx], ')')),
-                "\n")
-        }
-    }
-
-    ## Check the Reponder data corresponds to the QIV2-HI data sheet
-    ## Know:
-    ##   * strains1 == strains2
-    ##   * subjectID-1 == subjectID-2
-    errFlag <- FALSE
-    for(i in sort(unique(colPat1$SubSheet))) {
-        cat("----------------------------------------------------------------------\n",
-            "Working on subgroup:", i, "\n")
-        if(i == 0) next    # Skip the non-Repeat columns
-        ## Check 'Pre' matches 'Day-0'
-        inx1 <- which(is.finite(colPat1$SubSheet) & colPat1$SubSheet == i & colPat1$NewName == 'D000')
-        inx2 <- which(is.finite(colPat2$SubSheet) & colPat2$SubSheet == i & colPat2$NewName == 'PreVac')
-        eq <- myEquals(sheet1[, inx1, drop=TRUE], sheet2[, inx2, drop=TRUE])
-        if(any(eq == FALSE)) {
-            cat("*** Non-matching 'Pre' value for QIV2 sheets:\n",
-                "\tColumns: HI=", inx1, "vs Resp/Non=", inx2, "\n",
-                "\tExcel col:", paste(ExcelColumns[inx1], collapse=', '), 'vs',
-                paste(ExcelColumns[inx2], collapse=', '), "\n",
-                "\tRows=", paste(which(eq==FALSE), collapse=', '), "\n"
-                )
-            errFlag <- TRUE
-        }
-
-        ## Check 'Post' matches max('Day-30', 'Day-58', and sometimes 'Day-3-to-8')
-        inx1 <- which(is.finite(colPat1$SubSheet) & colPat1$SubSheet == i &
-                      colPat1$NewName %in% c('D003-8', 'D030', 'D058') )
-        stopifnot(length(inx1) == 3,
-                  colPat1$NewName[inx1] == c('D003-8', 'D030', 'D058')
-                  )  # Note: order of inx1 is based on _expected_ order of days in sheet
-        tmp <- myPMax(sheet1[, inx1[2], drop=TRUE], sheet1[, inx1[3], drop=TRUE])
-        ## If we have an NA, then look to the Day-3-to-8 column for a value
-        post <- tmp
-        inx <- is.na(tmp)
-        post[inx] <- myPMax(tmp[inx], sheet1[inx, inx1[1], drop=TRUE])
-        inx2  <- which(is.finite(colPat2$SubSheet) & colPat2$SubSheet == i & colPat2$NewName == 'PostVaxMax')
-        stopifnot(length(inx2) == 1)
-        eq <- myEquals(post, sheet2[, inx2, drop=TRUE])
-        if(any(eq == FALSE) ) {
-            cat("Non-matching 'Post' value for QIV2 sheets:\n",
-                "\tColumns: HI=", paste(inx1, collapse=', '), "vs Resp/Non=", inx2, "\n",
-                "\tExcel col:", paste(ExcelColumns[inx1], collapse=', '), 'vs',
-                paste(ExcelColumns[inx2], collapse=', '), "\n",
-                "\tRows=", paste(which(eq==FALSE), collapse=', '), "\n"
-                )
-            errFlag <- TRUE
-        }
-    }
-    return(errFlag)
 }
 
 ##********************************************************************************
@@ -930,21 +829,12 @@ cat("\nProcessing sheets:\n")
 print(sheets)
 cat("\n",dhLine, "\n", sep='')
 
-if(1 == 0) {
-    ## Compare data from QIV2 HI and Responder.
-    ## Data are separated for viewing but are really the same set.
-    ## Code STOPs if there is a discrepancy; check 'Pre'==Day-0 and 'Post'=max(Day-30, Day-58).
-    cat("Compare QIV2 HI vs QIV2 Responder sheets. Look for accurate copying and result computation.\n")
-    errFlag <- compareQIV2sheets(inFile, sheets, c('QIV2UIB HI', 'QIV2UIB HI Responders-Non resp'))
-}
-
 ## Loop over the sheets in the order:
 ##   Assay {HI, MN, ELLA, ELISA} then Trial {QIV1, QIV2, QIV3}
 cat("\n",dhLine, "\n", sep='')
 cat("Processing all sheets, organized by Assay and Trial:\n\n")
 
-#stop("Here for now")
-
+## "dat" is the final data frame to jam all the data into via rbind()
 dat <- NULL
 for(assay in AssayNames) {
     ##if(assay != 'ELISA') next
@@ -963,6 +853,96 @@ for(assay in AssayNames) {
     }
 }
 
+##********************************************************************************
+## Compute the Responder/Non-Responder status for the HI assay
+## This is slightly messy because:
+##    QIV1 has D000 & D028
+##    QIV2 has D000, D003-8, D028 & D058 with a complex rule for max post-vaccine
+##    QIV3 has D000, & D058
+##
+## <pre-vaccine> := titer at D000
+## <max post-vaccine> := QIV1=D028, QIV3=D058, QIV2=max(D030, D058) unless NA, then D003-8.
+## FoldChange := <max post-vaccine> / <pre-vaccine>
+## Responder := ( <max post-vaccine> >= 40 ) & ( FoldChange >= <cut off> )
+##    <cut off> := Threshold of 2.5 or 4.0.
+##
+## The sheet distributed by Cox, et al. used 2.5.
+stop("here for now")
+assay <- 'HI'
+resp <- list()  # One data frame per trial
+for(trial in TrialNames) {
+    if(trial == 'None') next
+    resp[[trial]] <- data.frame(SubjectID=unique(dat$SubjectID[dat$Trial == trial]))
+    for(i in 1:nrow(VaxStrains) ) {
+        strain <- VaxStrains$Strain[i]
+        inx <- (dat$Trial == trial) & (dat$Assay == assay) & (dat$Strain == strain)
+        days <- sort(unique(dat$Day[inx]))
+        subjects <- unique(dat$Subject[inx])
+        ## Different days for different trials; different rules as well.
+        if(trial == 'QIV1') {
+            stopifnot(c('D000', 'D028') %in% days)
+            ## Collect the Baseline (Pre-Vacination) value
+            inxBL <- inx & (dat$Day == 'D000')
+            stopifnot(dat$SubjectID[inxBL] == resp[[trial]]$SubjectID)
+            preVac <- dat$Value[inxBL]
+            ## Collect the Post-Vaccination value
+            inxPV <- inx & (dat$Day == 'D028')
+            stopifnot(dat$SubjectID[inxPV] == resp[[trial]]$SubjectID)
+            postVac <- dat$Value[inxPV]
+
+        } else if(trial == 'QIV2') {
+            stopifnot(c('D000', 'D003-8', 'D030', 'D058') %in% days)
+            ## Collect the Baseline (Pre-Vacination) value
+            inxBL <- inx & (dat$Day == 'D000')
+            stopifnot(dat$SubjectID[inxBL] == resp[[trial]]$SubjectID)
+            preVac <- dat$Value[inxBL]
+            ## Collect the Post-Vaccination value
+            inxPV0 <- inx & (dat$Day == 'D003-8')  # Use only if needed
+            inxPV1 <- inx & (dat$Day == 'D030')
+            inxPV2 <- inx & (dat$Day == 'D058')
+            stopifnot(dat$SubjectID[inxPV0] == resp[[trial]]$SubjectID,
+                      dat$SubjectID[inxPV1] == resp[[trial]]$SubjectID,
+                      dat$SubjectID[inxPV2] == resp[[trial]]$SubjectID)
+            postVac <- myPMax(dat$Value[inxPV1], dat$Value[inxPV1])
+            inxNA <- is.na(postVac)
+            postVac[inxNA] <- dat$Value[inxPV0][inxNA]
+
+        } else if(trial == 'QIV3') {
+            stopifnot(c('D000', 'D058') %in% days)
+            ## Collect the Baseline (Pre-Vacination) value
+            inxBL <- inx & (dat$Day == 'D000')
+            stopifnot(dat$SubjectID[inxBL] == resp[[trial]]$SubjectID)
+            preVac <- dat$Value[inxBL]
+            ## Collect the Post-Vaccination value
+            inxPV <- inx & (dat$Day == 'D058')
+            stopifnot(dat$SubjectID[inxPV] == resp[[trial]]$SubjectID)
+            postVac <- dat$Value[inxPV]
+        } else {
+            stop('Should never have a trial named:', trial)
+        }
+
+        ## Compute Fold Change and Responder Status
+        foldChange <- postVac / preVac
+        responder <- (postVac >= 40) & (foldChange >= 2.5)
+
+        ## Build data frame to add (via rbind) to 'dat', long-format
+        N <- length(subjects)
+        tmpDB <- data.frame(SubjectID=subjects,
+                            Trial=rep(trial, N),
+                            Assay=rep(assay, N),
+                            SubAssay=rep('HI-Responder', N),
+                            Strain=rep(strain, N),
+                            Day='
+
+        ## Build data frame to rbind to resp[[trial]]
+        tmpDF <- data.frame(PreVac=preVac, PostVac=postVac, FC=foldChange, Resp=responder)
+        colnames(tmpDF) <- paste0(colnames(tmpDF), '-', VaxStrains$ShortName[i])
+
+        resp[[trial]] <- cbind(resp[[trial]], tmpDF)
+    }
+}
+
+##********************************************************************************
 ## Output the data in a long-format CSV file
 cat(dhLine, '\nWriting output file: "', outName, '", ',
     nrow(dat), " rows x ", ncol(dat), " columns.\n", sep='')
