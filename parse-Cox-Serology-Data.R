@@ -132,6 +132,14 @@ if( !interactive() ) {
 }
 
 print( collectRunInfo(ProgramName, Version) )
+cat('Vocabulary Version:', VocabVersion, "\n\n")
+cat("Data input & output files:\n",
+    "\tInp = ", inFile, "\n",
+    "\tOut = ", outName, "\n",
+    "\tLog  = ", logFileName, "\n",
+    "\n",
+    sep='')
+
 
 ## Annotate that DEBUGGING is turned on (here, into the log file)
 if(DEBUG == TRUE)
