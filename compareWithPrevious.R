@@ -15,13 +15,13 @@ source('Controlled-Vocab.R')
 
 ## Program Name and Version
 ProgramName <- 'compareWithPrevious.R'
-Version <- '1.0'
+Version <- 'v2.0'
 
 options(warn=1)
 
 ## GLOBAL Variables
 oldFile <- '../2024-07-18_Zenodo-Upload-Becky-Cox/Incentive_QIV1_2_3-HI_Final_v1.0_2024-09-09.csv'
-newFile <- './Incentive_QIV1_2_3_ELISA_HI_MN_and_ELLA_Data_updated_2025-03-31_20260125.csv'
+newFile <- 'Incentive_QIV1_2_3_ELISA_HI_MN_and_ELLA_Data_updated_2025-03-31_20260128.csv'
 
 ## Prepare output files: logging and plots
 today <-  format(Sys.time(), "_%Y%m%d")
@@ -50,8 +50,8 @@ cat("Data input & output files:\n",
     "\tOld = ", oldFile, "\n",
     "\tNew = ", newFile, "\n",
     "\n",
-    "\tPlot = ", pltFile, "\n",
-    "\tLog  = ", logFile, "\n",
+    "\tPlot = ", pltName, "\n",
+    "\tLog  = ", logName, "\n",
     "\n",
     sep='')
 
@@ -146,8 +146,16 @@ for(trial in c('QIV1', 'QIV2', 'QIV3')) {
             stopifnot(sum(inxO) == sum(inxN), old$SubjectID[inxO] == new$SubjectID[inxN])
             o <- log10(old$Value[inxO])
             n <- log10(new$Value[inxN])
+            a <- (o + n)/2
+            m <- n - o
             plot((o+n)/2, n-o, main=sprintf('%s: %s %s', trial, day, strain))
             abline(h=0, col='SkyBlue')
+
+            ## Draw a rug where missing values occur in one but not the other
+            inxNA <- is.na(o) & !is.na(n)
+            rug(n[inxNA], col='red')
+            inxNA <- !is.na(o) & is.na(n)
+            rug(o[inxNA], col='blue')
 
             ## Perform a numerical comparison, including checking the NA matches NA
             inx <- myEquals(old$Value[inxO], new$Value[inxN])
@@ -159,3 +167,20 @@ for(trial in c('QIV1', 'QIV2', 'QIV3')) {
     }
 }
 
+##********************************************************************************
+## Close things
+if( !interactive() ) {
+    ## Close the plot
+    err <- dev.off()
+
+    ## Log the finish
+    endTime <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+    cat("\nCompleted run:", endTime, "\n")
+
+    ## Close the log file
+    sink(type='message')
+    sink()
+
+}
+
+cat("\nCompleted.\n")

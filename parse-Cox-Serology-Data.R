@@ -46,7 +46,7 @@ library(readxl)
 
 ## GLOBAL variables
 ProgramName <- 'parse-Cox-Serology-Data.R'
-Version <- 'v1.9'
+Version <- 'v2.0'
 
 options(warn=1)
 
@@ -115,15 +115,16 @@ if(is.na(inFile) || file.exists(inFile) == FALSE) {
 }
 
 ## Prepare an output file. Base the file name on the input name and on date.
-today <- Sys.time()
-outName <- gsub('\\.xlsx$', paste0(format(today, "_%Y%m%d"), '.csv'), inFile)
+today <- Sys.time()   # Used for both file names and computing run-time.
+todayStr <- format(Sys.time(), "_%Y%m%d")
+outName <- paste0(gsub('\\.xlsx$', '', inFile), todayStr, '.csv')
 if((file.exists(outName)) && (DEBUG==FALSE)) {
     cat("Output file: '", outName, "' already exists. Exiting.\n", sep='')
     stop("File exists")
 }
 
 ## Prepare a Log File for logging data via STDOUT & STDERR
-logFileName <- paste0(ProgramName, '_', format(today, '%Y%m%d'), '.log')
+logFileName <- paste0(gsub('\\.R$', '', ProgramName), todayStr, '.log')
 if( !interactive() ) {
     cat("\n*** Redirecting program reporting to Log File:", logFileName, "\n")
     LogFile <- file(logFileName, open='wt')
@@ -131,11 +132,16 @@ if( !interactive() ) {
     sink(LogFile, type='message')
 }
 
+## Prepare a set of names for Responder/Non-Responder files
+rnrNames <- paste0('Responder-', TrialNames[1:3], todayStr, '.csv')
+names(rnrNames) <- TrialNames[1:3]
+
 print( collectRunInfo(ProgramName, Version) )
 cat('Vocabulary Version:', VocabVersion, "\n\n")
 cat("Data input & output files:\n",
     "\tInp = ", inFile, "\n",
     "\tOut = ", outName, "\n",
+    "\tResp = ", paste(rnrNames, collapse=', '), "\n",
     "\tLog  = ", logFileName, "\n",
     "\n",
     sep='')
@@ -875,7 +881,6 @@ for(assay in AssayNames) {
 ##    <cut off> := Threshold of 2.5 or 4.0.
 ##
 ## The sheet distributed by Cox, et al. used 2.5.
-stop("here for now")
 assay <- 'HI'
 resp <- list()  # One data frame per trial
 for(trial in TrialNames) {
@@ -935,18 +940,51 @@ for(trial in TrialNames) {
 
         ## Build data frame to add (via rbind) to 'dat', long-format
         N <- length(subjects)
+
+        ## First add the Pre-Vaccination Baseline (D000)
         tmpDB <- data.frame(SubjectID=subjects,
                             Trial=rep(trial, N),
                             Assay=rep(assay, N),
                             SubAssay=rep('HI-Responder', N),
                             Strain=rep(strain, N),
-                            Day='
+                            Day=rep('PreVac', N),
+                            Value=preVac)
+        dat <- rbind(dat, tmpDB)
 
-        ## Build data frame to rbind to resp[[trial]]
-        tmpDF <- data.frame(PreVac=preVac, PostVac=postVac, FC=foldChange, Resp=responder)
-        colnames(tmpDF) <- paste0(colnames(tmpDF), '-', VaxStrains$ShortName[i])
+        ## Then add the Post-Vaccination data (QIV1=D028, QIV3=D058, QIV2=max(D030, D058))
+        tmpDB <- data.frame(SubjectID=subjects,
+                            Trial=rep(trial, N),
+                            Assay=rep(assay, N),
+                            SubAssay=rep('HI-Responder', N),
+                            Strain=rep(strain, N),
+                            Day=rep('PostVax', N),
+                            Value=postVac)
+        dat <- rbind(dat, tmpDB)
 
-        resp[[trial]] <- cbind(resp[[trial]], tmpDF)
+        ## Then add the Fold Change
+        tmpDB <- data.frame(SubjectID=subjects,
+                            Trial=rep(trial, N),
+                            Assay=rep(assay, N),
+                            SubAssay=rep('HI-Responder', N),
+                            Strain=rep(strain, N),
+                            Day=rep('FoldChange', N),
+                            Value=foldChange)
+        dat <- rbind(dat, tmpDB)
+
+        ## Finally add the Responder status
+        tmpDB <- data.frame(SubjectID=subjects,
+                            Trial=rep(trial, N),
+                            Assay=rep(assay, N),
+                            SubAssay=rep('HI-Responder', N),
+                            Strain=rep(strain, N),
+                            Day=rep('Respponder', N),
+                            Value=responder)
+        dat <- rbind(dat, tmpDB)
+
+        ## Build data frame to cbind to resp[[trial]]
+        wideDF <- data.frame(PreVac=preVac, PostVac=postVac, FC=foldChange, Resp=responder)
+        colnames(wideDF) <- paste0(colnames(wideDF), '-', VaxStrains$ShortName[i])
+        resp[[trial]] <- cbind(resp[[trial]], wideDF)
     }
 }
 
@@ -955,6 +993,12 @@ for(trial in TrialNames) {
 cat(dhLine, '\nWriting output file: "', outName, '", ',
     nrow(dat), " rows x ", ncol(dat), " columns.\n", sep='')
 write.csv(dat, file=outName, row.names=FALSE)
+
+cat('\nWriting Responder output files:\n')
+for(trial in TrialNames[1:3]) {
+    cat("\t", rnrNames[trial], "\n")
+    write.csv(resp[[trial]], rnrNames[trial], row.names=FALSE)
+}
 
 ## Completed.
 runTime <- difftime(Sys.time(), today, units='secs')
