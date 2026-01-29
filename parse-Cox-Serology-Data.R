@@ -46,7 +46,7 @@ library(readxl)
 
 ## GLOBAL variables
 ProgramName <- 'parse-Cox-Serology-Data.R'
-Version <- 'v2.0'
+Version <- 'v2.1'
 
 options(warn=1)
 
@@ -977,7 +977,7 @@ for(trial in TrialNames) {
                             Assay=rep(assay, N),
                             SubAssay=rep('HI-Responder', N),
                             Strain=rep(strain, N),
-                            Day=rep('Respponder', N),
+                            Day=rep('Responder', N),
                             Value=responder)
         dat <- rbind(dat, tmpDB)
 
