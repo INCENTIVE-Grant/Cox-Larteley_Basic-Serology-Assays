@@ -1,4 +1,8 @@
-# Hemagglutination Inhibition Assay (HI) CSV File
+# Cox Lab Serology Assays Results CSV File
+
+**Written by:** Mark Dalphin, Human Immunome Project
+
+**Last update:** 2026-01-28
 
 The CSV file,
 `Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31_20260128.csv`,
@@ -10,7 +14,8 @@ see: [Long vs. Wide Data: What’s the
 Difference?](https://www.statology.org/long-vs-wide-data/).
 
 The CSV file is derived programatically from the Excel file via the
-R-program, `parse-Cox-Serology-Data.R`, version 2.0.
+R-program, `parse-Cox-Serology-Data.R`, version 2.1, available at
+GitHub.
 
 ## Column definitions of the CSV file
 
@@ -24,8 +29,9 @@ Trial
   *QIV2*, or *QIV3*
 
 Assay
-: Which assay. All of these data are the Hemagglutination Inhibition
-  Assay, *HI*.
+: Which assay. These are all traditional serological assays,
+  HI, MN, ELISA, and ELLA. These are described in more detail
+  in this repository's `README.pdf` file.
 
 SubAssay
 : Some Assays have different versions. For example, the HI Assay has
@@ -33,20 +39,21 @@ SubAssay
   tests against additional strains.
 
 Strain
-: Which influenza virus strain was tested in the HI assay. A full list
-  in WHO standard format is shown below.
+: Which influenza virus strain was tested in the assay. A full list of
+  strains used in these assays is shown below in WHO standard format.
   
 Day
 : A slight misnomer as it is not only *Days*. This value defines the
-  type of *value* measured. It could be the value at Day 0 (*D000*),
-  Day 3 to 8 (*D003-8*, Day 28 (*D028*), Day 30 (*D030*), Day 58
-  (*D058*), Day 180 (*D180*), Day 360 (*D360*). In addition to *Days*,
-  other values are: Fold Change (*FoldChange*), Post vaccination
-  maximum value (*PostVax*), Pre-vaccination value (*PreVac*), or
-  if the subject responded to the vaccination (*Responder*).
+  type of *value* measured. It could be the virus titer at Day 0
+  (*D000*), Day 3 to 8 (*D003-8*, Day 28 (*D028*), Day 30 (*D030*),
+  Day 58 (*D058*), Day 180 (*D180*), Day 360 (*D360*). In addition to
+  *Days*, other values are: Fold Change (*FoldChange*), Post
+  vaccination maximum virus titer (*PostVax*), Pre-vaccination virus
+  titer (*PreVac*), or if the subject responded to the vaccination
+  (*Responder*).
 
 Value
-: The numerical value the assay for the different Days; the
+: The numerical value of the assay for the different Days; the
   fold-change of: (Post-vacination HI assay / Pre-vaccination HI
   assay); or for *Responder*, a value of 1 if the subject responded to
   the vaccine and 0 if they did not respond.
@@ -80,18 +87,65 @@ viruses](https://www.cdc.gov/flu/about/viruses-types.html#cdc_generic_section_4-
 - B/Phuket/3073/2013
 - B/Washington/2/2019
 
-One assay uses a mixture of strains; those mixtures are listed here.
+One assay, ELLA, uses a mixture of strains; those mixtures are listed
+here.
 
 - A/Equine/Prague/1/1956 (H7N7) + A/California/7/2019 (H1N1)
 - A/Turkey/Massachusetts/3740/1965 (H6N2) + A/Texas/50/2012 (H2N2)
 - A/Turkey/Massachusetts/3740/1965 (H6N2) + B/Yamagata/16/1988 (NB)
 
-## Accessing the CSV data
+## Additional CSV files
+
+For initial analysis of all the INCENTIVE results, the INCENTIVE
+researchers created a definition of a _Responder_ to the vaccine. The
+assay used for this definition was the HI assay. Response was
+calculated per virus strain, that is, as there were four strains in
+the vaccine, an individual could respond to 0, 1, 2, 3 or 4 strains.
+
+These results were circulated via a spreadsheet within INCENTIVE from
+early on. With this final serology dataset, those Responder values are
+re-calculated (they are unchanged from the originally calculated
+values) and stored both in the main CSV file,
+`Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31_20260128.csv` and
+additionally, in some _wide-format_ CSV files showing the
+Responder/Non-Responder results in a format similar to that which was
+circulated within INCENTIVE. These files are:
+`Responder-QIV1_20260128.csv`, `Responder-QIV2_20260128.csv`, and
+`Responder-QIV3_20260128.csv`.
+
+The columns in these _Responder_ CSV files are:
+
+SubjectID
+: The ID used for this subject in the trial
+
+PreVac-STRAIN
+: The titer the individual had pre-vaccination with for the strain,
+  STRAIN
+
+PostVac-STRAIN
+: The maximum titer that the individual had post-vaccination. This may
+  be a single value (QIV-1, QIV-3) or the maximum of multiple values
+  (QIV-2: Day-30 and Day-58). This is specific for the strain, STRAIN.
+  
+FC-STRAIN
+: The _fold-change_ between Post-Vaccination and Pre-Vaccination
+  titers for the strain, STRAIN.
+
+Resp-STRAIN
+: Is this a _responder_ to the strain, STRAIN. The definition is: 1)
+  Post-vaccine titer must be greater-than or equal-to 40, and 2) The
+  fold-change must be greater-than or equal-to 2.5.
+
+As there are four strains in the vaccine, each of these four columns,
+Pre-Vac, Post-Vac, FC, and Resp, are repeated four times, one for each
+strain.
+
+# Accessing the CSV data
 
 Basic code to read and view the CSV data is shown below in
 the R programming language.
 
-### Code for R program
+## Code for R program
 
 ```r
 #!/usr/bin/env Rscript
@@ -146,7 +200,7 @@ cat("\nCompleted.\n")
 
 ```
 
-### Results of running the R program
+## Results of running the R program
 
 ```
 -----------------------------------------------------------------------------------

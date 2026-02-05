@@ -5,6 +5,7 @@
 ##
 ## VERSION HISTORY
 ## [2026-01-24 MeD] Initial version
+## [2026-02-04 MeD] Update filenames
 ##
 ##********************************************************************************
 ## Libraries
@@ -15,13 +16,13 @@ source('Controlled-Vocab.R')
 
 ## Program Name and Version
 ProgramName <- 'compareWithPrevious.R'
-Version <- 'v2.0'
+Version <- 'v2.1'
 
 options(warn=1)
 
 ## GLOBAL Variables
 oldFile <- '../2024-07-18_Zenodo-Upload-Becky-Cox/Incentive_QIV1_2_3-HI_Final_v1.0_2024-09-09.csv'
-newFile <- 'Incentive_QIV1_2_3_ELISA_HI_MN_and_ELLA_Data_updated_2025-03-31_20260128.csv'
+newFile <- 'Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31_20260204.csv'
 
 ## Prepare output files: logging and plots
 today <-  format(Sys.time(), "_%Y%m%d")

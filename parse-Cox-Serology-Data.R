@@ -38,6 +38,7 @@
 ##                  new LONG-format column to accomodate.
 ##                  Rename the code to parse-Cox-Serology-Data.R.
 ## [2025-10-13 MeD] Update to include the 'Controlled-Vocab.R' file.
+## [2025-12-01 MeD] Adjust output columns to match Controlled-Vocab.R:ColumnNames.
 ##
 ##********************************************************************************
 library(AnalysisHeader)
@@ -46,7 +47,7 @@ library(readxl)
 
 ## GLOBAL variables
 ProgramName <- 'parse-Cox-Serology-Data.R'
-Version <- 'v2.1'
+Version <- 'v2.3'
 
 options(warn=1)
 
@@ -88,9 +89,9 @@ KnownColumnNames <- c('D0', 'D28', 'D3-8', 'D30', 'D58', 'D180', 'D360')
 
 ## Assign my input file name; if I don't, then get the command-line argument
 if(interactive())
-    inFile <- "Incentive_QIV1_2_3_ELISA_HI_MN_and_ELLA_Data_updated_2025-03-31.xlsx"
+    inFile <- "Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31.xlsx"
 
-## Check if an 'inFile' already exists. Useful in debugging, etc.
+## Check if an 'inFile' object already exists. Useful in debugging, etc.
 if( !exists('inFile') ) {
     inFile <- commandArgs(trailingOnly=TRUE)[1]
 }
@@ -394,7 +395,8 @@ parseSheet <- function(excelFile, sheetName, trialName, assayName) {
         st$End <- NULL
         colnames(st) <- c('Strain', 'Start', 'End')
 
-        res <- parseSubSheet(sheetName, trialName, assayName, subAssayName=subAssays$ShortName[i], newSheet, st)
+        res <- parseSubSheet(sheetName, trialName, assayName,
+                             subAssayName=subAssays$ShortName[i], newSheet, st)
         result <- rbind(result, res)
     }
 
@@ -434,7 +436,8 @@ parseSheet <- function(excelFile, sheetName, trialName, assayName) {
                 sprintf("\tTotal values deleted: %d", sum(inxBad)),
                 paste0("\tEffected Subjects:\n",
                        wrapText(sort(unique(result$SubjectID[inxBad])), prefix='\t\t')),
-                paste0("\tEffected Data 'Days':\n", wrapText(sort(unique(result$Day[inxBad])), prefix='\t\t')),
+                paste0("\tEffected Data 'Days':\n",
+                       wrapText(sort(unique(result$Day[inxBad])), prefix='\t\t')),
                 sep='\n')
             result <- result[ !inxBad, ]
         }
@@ -987,6 +990,41 @@ for(trial in TrialNames) {
         resp[[trial]] <- cbind(resp[[trial]], wideDF)
     }
 }
+
+##********************************************************************************
+## Revise the whole output data frame to be consistent with the
+## formats seen under Systems-Serology and Specific-Antibody
+## assay. See: Controlled-Vocab.R:ColumnNames for the output and
+## content.
+##
+## This re-write consists of re-ordering the columns, adding some
+## additional columns and filling them with appropriate information.
+##
+## Columns to fill:
+##   SampleType: All are "Samp"
+##   Protein: If I can determine the assay, then what am I assaying?
+##   StrainProt: NA
+##   Dilution: 1
+##   ValueUnits: titer
+
+dat$SampleType <- 'Samp'
+## FIXME: Confirm with Becky Cox that the following is coded correctly!
+dat$Protein <- ifelse(dat$SubAssay == 'HI titre vaccine strain', 'pHA',
+               ifelse(dat$SubAssay == 'HI titre non-vaccine strain', 'pHA',
+               ifelse(dat$SubAssay == 'Neutralizing Ab titre', 'pHA',
+               ifelse(dat$SubAssay == 'NA Inhibiting Ab titre', 'pNA',
+               ifelse(dat$SubAssay == 'IgG endpoint titre', 'pHA',
+               ifelse(dat$SubAssay == 'HA IgG endpoint titre', 'pHA',
+               ifelse(dat$SubAssay == 'NA IgG endpoint titre', 'pNA', '')))))))
+dat$StrainProt <- NA
+dat$Dilution <- 1.0
+dat$ValueUnit <- 'titer'
+
+stopifnot(colnames(dat) %in% ColumnNames)
+colOrder <- c('SampleType', 'Trial', 'SubjectID', 'Day', 'Assay', 'Strain',
+              'Protein', 'StrainProt', 'Dilution', 'Value', 'ValueUnit', 'SubAssay')
+stopifnot(colOrder %in% colnames(dat), colnames(dat) %in% colOrder)
+dat <- dat[, colOrder]
 
 ##********************************************************************************
 ## Output the data in a long-format CSV file
