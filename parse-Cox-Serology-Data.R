@@ -39,6 +39,8 @@
 ##                  Rename the code to parse-Cox-Serology-Data.R.
 ## [2025-10-13 MeD] Update to include the 'Controlled-Vocab.R' file.
 ## [2025-12-01 MeD] Adjust output columns to match Controlled-Vocab.R:ColumnNames.
+## [2026-02-07 MeD] Just realized that the SubjectIDs are not spelled the same here
+##                  as other files. Correct this.
 ##
 ##********************************************************************************
 library(AnalysisHeader)
@@ -47,7 +49,7 @@ library(readxl)
 
 ## GLOBAL variables
 ProgramName <- 'parse-Cox-Serology-Data.R'
-Version <- 'v2.3'
+Version <- 'v2.4'
 
 options(warn=1)
 
@@ -1025,6 +1027,25 @@ colOrder <- c('SampleType', 'Trial', 'SubjectID', 'Day', 'Assay', 'Strain',
               'Protein', 'StrainProt', 'Dilution', 'Value', 'ValueUnit', 'SubAssay')
 stopifnot(colOrder %in% colnames(dat), colnames(dat) %in% colOrder)
 dat <- dat[, colOrder]
+
+## Fix the SubjectIDs: strip HYPHENs, strip leading QIV1, QIV2, QIV3.
+dat$SubjectID <- gsub('^QIV[123]', '', gsub('-', '', dat$SubjectID))
+
+## Note: A manual comparison with the Dobaño lab data shows only that a
+## few infant samples do not show up:
+##    c("CHU002", "CHU009", "CHU010", "CHU013", "CHU018", "CHU029", "CHU031", "UIB027")
+## These were deleted in the latest release of the Cox dataset as they
+## missed measuring some critical days.
+if(1 == 0) {
+    d <- read.csv('../2025-10-20_Dobaño_Zenodo-Upload/Dobaño-Aguilar_QIV-1-2-3_2024-07-19_20260209.csv',
+                  header=TRUE, as.is=TRUE)
+    x1 <- sort(unique(dat$SubjectID))
+    x2 <- sort(unique(d$SubjectID[d$SampleType=='Samp']))
+    cat("SampleID in Cox dataset, not present in Dobaño dataset:\n")
+    print(setdiff(x1, x2))
+    cat("SampleID in Dobaño dataset, not present in Cox dataset:\n")
+    print(setdiff(x2, x1))
+}
 
 ##********************************************************************************
 ## Output the data in a long-format CSV file
