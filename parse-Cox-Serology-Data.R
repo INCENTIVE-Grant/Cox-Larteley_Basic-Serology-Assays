@@ -49,7 +49,7 @@ library(readxl)
 
 ## GLOBAL variables
 ProgramName <- 'parse-Cox-Serology-Data.R'
-Version <- 'v2.4'
+Version <- 'v2.5'
 
 options(warn=1)
 

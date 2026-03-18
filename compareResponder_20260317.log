@@ -1,0 +1,95 @@
+----------------------------------------------------------------------------------------------------------------------------------
+Program: compareResponder.R
+Version: v1.0, Git Tag: v2.4.1-2-g755c8d2
+Run Date: 2026-03-17 21:06:05 EDT
+User: hvp
+Hostname: xena
+Working Dir: /home/hvp/Documents/Projects/2025-10-13_Cox_Zenodo-Upload
+Arguments: 
+----------------------------------------------------------------------------------------------------------------------------------
+R version 4.5.0 (2025-04-11)
+Platform: x86_64-pc-linux-gnu
+Running under: Ubuntu 24.04.4 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8    LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: America/New_York
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] AnalysisHeader_1.6
+
+loaded via a namespace (and not attached):
+[1] compiler_4.5.0
+---------------------------------------------------------------------------------------------------------------------------------- 
+For this comparison, we compare data extracted from the Excel sheet
+circulated to INCENTIVE WP5 on 2024-06-14 containing Responder/Non-Responder
+data. The Excel file was named:
+   Incentive_EU_QIV1-2-3_responder-nonresponder_HI_2024-06-14.xlsx.
+
+The data in the 'old' files was extracted from this Excel file.
+
+The data for the 'new' files was extracted from the Excel file named:
+   Incentive_QIV1_2_3_ELISA_HI_MN_and_ELLA_Data_updated_2025-03-31.xlsx,
+and converted to Responder/Non-Responder values following the method in the
+old Excel file.
+ 
+Files:
+	Old data files:
+		../2024-05-10_Responder-Non-Responder_v6.1/Cox-Larteley_Resp-Non-Resp_2024-06-14/QIV1-Responder.csv
+		../2024-05-10_Responder-Non-Responder_v6.1/Cox-Larteley_Resp-Non-Resp_2024-06-14/QIV2-Responder.csv
+		../2024-05-10_Responder-Non-Responder_v6.1/Cox-Larteley_Resp-Non-Resp_2024-06-14/QIV3-Responder.csv
+	New data files:
+		./Responder-QIV1_20260317.csv
+		./Responder-QIV2_20260317.csv
+		./Responder-QIV3_20260317.csv
+	Log data file:
+		 compareResponder_20260317.log 
+
+*********************************************************************************************************************************
+Subjects missing in New Data:
+	QIV3-CHU-002, QIV3-CHU-009, QIV3-CHU-010, QIV3-CHU-013, QIV3-CHU-014, QIV3-CHU-018, QIV3-CHU-029, QIV3-CHU-031
+Dropping those subjects in comparison.
+
+Comparing dataset, old and new, ignoring NA:
+	All of QIV1, old and new, are identical: TRUE
+	All of QIV2, old and new, are identical: TRUE
+	All of QIV3, old and new, are identical: TRUE
+
+Comparing dataset, old and new, noting NA:
+	All of QIV1, old and new, are identical: TRUE
+	All of QIV2, old and new, are identical: TRUE
+	All of QIV3, old and new, are identical: NA
+
+QIV3 dataset, old vs new, differs by an NA at these coordinates:
+   row col
+19  14  16
+19  14  17
+
+Old (columns 1 and 14-17):
+	      SubjectID PreVac.B.Washington PostVac.B.Washington FC.B.Washington Resp.B.Washington
+19 QIV3-CHU-017                   5                   NA               0             FALSE
+
+New:
+	      SubjectID PreVac.B.Washington PostVac.B.Washington FC.B.Washington Resp.B.Washington
+14 QIV3-CHU-017                   5                   NA              NA                NA
+
+Issue located manually.
+Issue found in Excel sheet, 'QIV3-CHU HI', cell P22. This is empty for 'no value'.
+Excel interprets an empty cell as '0' so the calculation in Q22 yeilds '0'. This then
+carries on to cell R22 interpreted as a 'non-responder' where it is in fact a 'unknown value'.
+
+In summary, subject CHU-017 is not a 'non-responder' but rather an 'unknown'.
+The error is with Excel interpreting an empty cell as '0'.
+
+Completed: 2026-03-17 21:06:05 

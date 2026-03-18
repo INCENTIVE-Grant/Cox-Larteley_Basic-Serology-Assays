@@ -6,15 +6,17 @@
 ## VERSION HISTORY
 ## [2024-10-13 MeD] Initial version
 ## [2025-10-17 MeD] Updated for the new data upload
+## [2026-03-17 MeD] Automate selection of latest CSV file for running
 ##
 ##**********************************************************************
 library(AnalysisHeader)
 
 ## Which file are we reading?
-inFile <- 'Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31_20260209.csv'
+# inFile <- 'Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31_20260209.csv'
+inFile <- sort(list.files(pattern='Cox-Lab-.*\\.csv'), decreasing=TRUE)[1]
 
 ## Collect the run-time information
-runInfo <- collectRunInfo(programName='basic-reader.R', version='1.1')
+runInfo <- collectRunInfo(programName='basic-reader.R', version='1.2')
 print(runInfo)
 cat("Input file:", inFile, "\n\n")
 
@@ -28,7 +30,7 @@ cat("\tSize in memory is", object.size(d), "bytes.\n",
     "\tas", nrow(d), "rows x", ncol(d), "columns.\n")
 
 ## What does it look like?
-cat("\nAn excerpt of the data looks like:\n")
+cat("\nAn excerpt of the data:\n")
 print(head(d))
 
 ## Display the distribution of values in the dataset

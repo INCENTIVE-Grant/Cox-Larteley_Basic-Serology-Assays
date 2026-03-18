@@ -1,3 +1,4 @@
+2024-05-10_Responder-Non-Responder_v6.1
 2024-07-18_Zenodo-Upload-Becky-Cox
 2025-03-30_Traditional-Serology
 TO-UPLOAD
@@ -10,6 +11,7 @@ Controlled-Vocab.R
 Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31.xlsx
 Incentive_QIV1_2_3_ELISA_HI_MN_and_ELLA_Data_updated_2025-03-31.xlsx
 # Include LOG files at GitHub for specific runs which go to Zenodo
-!compareWithPrevious_20260204.log
-!compareWithPrevious_20260204.pdf
-!parse-Cox-Serology-Data_20260209.log
+!parse-Cox-Serology-Data_20260317.log
+!compareResponder_20260317.log
+!compareWithPrevious_20260317.log
+!compareWithPrevious_20260317.pdf

@@ -1,0 +1,616 @@
+----------------------------------------------------------------------------------------------------------------------------------
+Program: parse-Cox-Serology-Data.R
+Version: v2.5, Git Tag: v2.4.1-2-g755c8d2
+Run Date: 2026-03-17 20:59:55 EDT
+User: hvp
+Hostname: xena
+Working Dir: /home/hvp/Documents/Projects/2025-10-13_Cox_Zenodo-Upload
+Arguments: Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31.xlsx
+----------------------------------------------------------------------------------------------------------------------------------
+R version 4.5.0 (2025-04-11)
+Platform: x86_64-pc-linux-gnu
+Running under: Ubuntu 24.04.4 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.12.0  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8    LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: America/New_York
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] readxl_1.4.5       tibble_3.3.1       AnalysisHeader_1.6
+
+loaded via a namespace (and not attached):
+ [1] compiler_4.5.0   magrittr_2.0.4   cli_3.6.5        pillar_1.11.1    glue_1.8.0       cellranger_1.1.0 vctrs_0.7.0     
+ [8] lifecycle_1.0.5  pkgconfig_2.0.3  rlang_1.1.7     
+---------------------------------------------------------------------------------------------------------------------------------- 
+Vocabulary Version: v1.6.1 
+
+Data input & output files:
+	Inp = Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31.xlsx
+	Out = Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31_20260317.csv
+	Resp = Responder-QIV1_20260317.csv, Responder-QIV2_20260317.csv, Responder-QIV3_20260317.csv
+	Log  = parse-Cox-Serology-Data_20260317.log
+
+
+Known Strains:
+	A/Brisbane/2/2018 (H1N1)
+	A/Brisbane/57/2007 (H1N1)
+	A/California/4/2009 (H1N1)
+	A/California/7/2019 (H1N1)
+	A/Darwin/9/2021 (H3N2)
+	A/Darwin/6/2021 (H3N2)
+	A/Guangdong-Maonan/SWL1536/2019 (H1N1)
+	A/Hong Kong/45/2019 (H3N2)
+	A/Hong Kong/4801/2014 (H3N2)
+	A/Panama/2007/1999 (H3N2)
+	A/Singapore/INFIMH-16-0019/2016 (H3N2)
+	A/Switzerland/9715293/2013 (H3N2)
+	A/Tasmania/503/2020 (H3N2)
+	A/Victoria/2570/2019 (H1N1)
+	A/Wisconsin/588/2019 (H1N1)
+	B/Austria/1359417/2021
+	B/Phuket/3073/2013
+	B/Washington/2/2019
+	A/Equine/Prague/1/1956 (H7N7) + A/California/7/2019 (H1N1)
+	A/Turkey/Massachusetts/3740/1965 (H6N2) + A/Texas/50/2012 (H2N2)
+	A/Turkey/Massachusetts/3740/1965 (H6N2) + B/Yamagata/16/1988 (NB)
+	None
+	All
+	Staph. Enterotoxin B
+	A/H6N2
+	A/H7N1
+	B/H6NB
+
+Using these Strain Alias Names:
+                                                              Alias
+1                                         A/Brisbane/02/2018 (H1N1)
+2                                         A/Calfornia/07/2019(H1N1)
+3                                       A/California/07/2019 (H1N1)
+4                                             B/Washsington/02/2019
+5                                              B/WashIngton/02/2019
+6                                              B/Washington/02/2019
+7                                           A/Darwin/09/2021 (H3N2)
+8                                       A/HongKong/4801/2014 (H3N2)
+9                            A/Singapore/IFNIMH-16-0019/2016 (H3N2)
+10                                        A/Victoria/2570/2019/H1H1
+11                                         A/Tasmania/503/2020/H3N2
+12                                       A/Calfornia/07/2019 (H1N1)
+13                             A/Singapore/IFNIMH-16-0019/2016/H3N2
+14                                        A/HongKong/4801/2014/H3N2
+15                                        A/Wisconsin/588/2019/H1N1
+16                                          A/Brisbane/02/2018/H1N1
+17                A/Equine/Prague/56 (H7) +A/Calfornia/07/2019 (N1)
+18    A/Turkey/Massachusettes/3740/1965 (H6) + A/Texas/50/2012 (N2)
+19 A/Turkey/Massachusettes/3740/1965 (H6) + B/Yamagata/16/1988 (NB)
+20                                                               N2
+21                                                               N1
+22                                                             B/NB
+23                                                               NB
+                                                           Canonical
+1                                           A/Brisbane/2/2018 (H1N1)
+2                                         A/California/7/2019 (H1N1)
+3                                         A/California/7/2019 (H1N1)
+4                                                B/Washington/2/2019
+5                                                B/Washington/2/2019
+6                                                B/Washington/2/2019
+7                                             A/Darwin/9/2021 (H3N2)
+8                                       A/Hong Kong/4801/2014 (H3N2)
+9                             A/Singapore/INFIMH-16-0019/2016 (H3N2)
+10                                       A/Victoria/2570/2019 (H1N1)
+11                                        A/Tasmania/503/2020 (H3N2)
+12                                        A/California/7/2019 (H1N1)
+13                            A/Singapore/INFIMH-16-0019/2016 (H3N2)
+14                                      A/Hong Kong/4801/2014 (H3N2)
+15                                       A/Wisconsin/588/2019 (H1N1)
+16                                          A/Brisbane/2/2018 (H1N1)
+17        A/Equine/Prague/1/1956 (H7N7) + A/California/7/2019 (H1N1)
+18  A/Turkey/Massachusetts/3740/1965 (H6N2) + A/Texas/50/2012 (H2N2)
+19 A/Turkey/Massachusetts/3740/1965 (H6N2) + B/Yamagata/16/1988 (NB)
+20                                                            A/H6N2
+21                                                            A/H7N1
+22                                                            B/H6NB
+23                                                            B/H6NB
+
+Processing sheets:
+        SheetName Trial Assay
+1     QIV1-ATW HI  QIV1    HI
+2      QIV1ATW MN  QIV1    MN
+3    QIV1ATW-ELLA  QIV1  ELLA
+4   QIV1ATW ELISA  QIV1 ELISA
+5     QIV2-UIB HI  QIV2    HI
+6     QIV2-UIB MN  QIV2    MN
+7    QIV2UIB ELLA  QIV2  ELLA
+8  QIV2-UIB ELISA  QIV2 ELISA
+9    QIV3-CHU HI   QIV3    HI
+10    QIV3-CHU MN  QIV3    MN
+11  QIV3-CHU ELLA  QIV3  ELLA
+12 QIV3-CHU ELISA  QIV3 ELISA
+
+======================================================================
+
+======================================================================
+Processing all sheets, organized by Assay and Trial:
+
+======================================================================
+Processing sheet 1: 'QIV1-ATW HI'
+	Trial=QIV1, Assay=HI
+ 
+New names:
+• `` -> `...1`
+• `` -> `...2`
+• `` -> `...3`
+• `` -> `...4`
+• `` -> `...5`
+• `` -> `...6`
+• `` -> `...7`
+• `` -> `...8`
+• `` -> `...9`
+• `` -> `...10`
+• `` -> `...11`
+• `` -> `...12`
+• `` -> `...13`
+• `` -> `...14`
+• `` -> `...15`
+• `` -> `...16`
+• `` -> `...17`
+• `` -> `...18`
+• `` -> `...19`
+• `` -> `...20`
+• `` -> `...21`
+• `` -> `...22`
+• `` -> `...23`
+• `` -> `...24`
+• `` -> `...25`
+• `` -> `...26`
+• `` -> `...27`
+• `` -> `...28`
+
+Warning: Substituting strain(s):
+	A/Victoria/2570/2019/H1H1 --> A/Victoria/2570/2019 (H1N1)
+	A/Tasmania/503/2020/H3N2 --> A/Tasmania/503/2020 (H3N2)
+	B/Washsington/02/2019 --> B/Washington/2/2019
+	A/Calfornia/07/2019 (H1N1) --> A/California/7/2019 (H1N1)
+	A/Brisbane/02/2018 (H1N1) --> A/Brisbane/2/2018 (H1N1)
+	A/Singapore/IFNIMH-16-0019/2016 (H3N2) --> A/Singapore/INFIMH-16-0019/2016 (H3N2)
+	A/Darwin/09/2021 (H3N2) --> A/Darwin/9/2021 (H3N2)
+
+
+********************
+Work on Issue #4 (Duplicated Data):
+	Checking strain: A/Brisbane/57/2007 (H1N1) 
+	Checking strain: A/California/4/2009 (H1N1) 
+	Checking strain: A/California/7/2019 (H1N1) 
+	Checking strain: A/Darwin/9/2021 (H3N2) 
+	Checking strain: A/Darwin/6/2021 (H3N2) 
+	Checking strain: A/Guangdong-Maonan/SWL1536/2019 (H1N1) 
+	Checking strain: A/Hong Kong/45/2019 (H3N2) 
+	Checking strain: A/Hong Kong/4801/2014 (H3N2) 
+	Checking strain: A/Panama/2007/1999 (H3N2) 
+	Checking strain: A/Singapore/INFIMH-16-0019/2016 (H3N2) 
+	Checking strain: A/Switzerland/9715293/2013 (H3N2) 
+	Checking strain: A/Tasmania/503/2020 (H3N2) 
+	Checking strain: A/Victoria/2570/2019 (H1N1) 
+		Data matches for: strain= A/Victoria/2570/2019 (H1N1) 
+	Checking strain: A/Wisconsin/588/2019 (H1N1) 
+	Checking strain: B/Austria/1359417/2021 
+	Checking strain: B/Phuket/3073/2013 
+	Checking strain: B/Washington/2/2019 
+	Checking strain: A/Equine/Prague/1/1956 (H7N7) + A/California/7/2019 (H1N1) 
+	Checking strain: A/Turkey/Massachusetts/3740/1965 (H6N2) + A/Texas/50/2012 (H2N2) 
+	Checking strain: A/Turkey/Massachusetts/3740/1965 (H6N2) + B/Yamagata/16/1988 (NB) 
+	Checking strain: None 
+	Checking strain: All 
+	Checking strain: Staph. Enterotoxin B 
+	Checking strain: A/H6N2 
+	Checking strain: A/H7N1 
+	Checking strain: B/H6NB 
+
+	Data for strain= A/Brisbane/2/2018 (H1N1) duplicated from: A/Victoria/2570/2019 (H1N1) 
+
+Fix Issue #4: QIV1-ATW HI duplicated data:
+	Deleting data that was erroneously entered. Strain was not tested in lab.
+	Sheet: 'QIV1-ATW HI', Strain: 'A/Brisbane/2/2018 (H1N1)', Subjects and Days: ALL
+	Total values deleted: 100
+	Effected Subjects:
+		QIV1ATW003, QIV1ATW005, QIV1ATW010, QIV1ATW011, QIV1ATW012,
+		QIV1ATW013, QIV1ATW019, QIV1ATW021, QIV1ATW023, QIV1ATW024,
+		QIV1ATW025, QIV1ATW026, QIV1ATW028, QIV1ATW029, QIV1ATW031,
+		QIV1ATW035, QIV1ATW036, QIV1ATW037, QIV1ATW038, QIV1ATW039,
+		QIV1ATW040, QIV1ATW041, QIV1ATW042, QIV1ATW043, QIV1ATW044,
+		QIV1ATW045, QIV1ATW046, QIV1ATW047, QIV1ATW048, QIV1ATW051,
+		QIV1ATW052, QIV1ATW053, QIV1ATW054, QIV1ATW055, QIV1ATW056,
+		QIV1ATW057, QIV1ATW058, QIV1ATW059, QIV1ATW063, QIV1ATW064,
+		QIV1ATW065, QIV1ATW066, QIV1ATW067, QIV1ATW069, QIV1ATW070,
+		QIV1ATW071, QIV1ATW072, QIV1ATW074, QIV1ATW075, QIV1ATW076
+	Effected Data 'Days':
+		D000, D028
+======================================================================
+Processing sheet 5: 'QIV2-UIB HI'
+	Trial=QIV2, Assay=HI
+ 
+New names:
+• `` -> `...1`
+• `` -> `...2`
+• `` -> `...3`
+• `` -> `...4`
+• `` -> `...5`
+• `` -> `...6`
+• `` -> `...7`
+• `` -> `...8`
+• `` -> `...9`
+• `` -> `...10`
+• `` -> `...11`
+• `` -> `...12`
+• `` -> `...13`
+• `` -> `...14`
+• `` -> `...15`
+• `` -> `...16`
+• `` -> `...17`
+• `` -> `...18`
+• `` -> `...19`
+• `` -> `...20`
+• `` -> `...21`
+• `` -> `...22`
+• `` -> `...23`
+• `` -> `...24`
+• `` -> `...25`
+• `` -> `...26`
+• `` -> `...27`
+• `` -> `...28`
+• `` -> `...29`
+• `` -> `...30`
+• `` -> `...31`
+• `` -> `...32`
+• `` -> `...33`
+• `` -> `...34`
+• `` -> `...35`
+• `` -> `...36`
+• `` -> `...37`
+• `` -> `...38`
+• `` -> `...39`
+• `` -> `...40`
+• `` -> `...41`
+• `` -> `...42`
+• `` -> `...43`
+• `` -> `...44`
+• `` -> `...45`
+• `` -> `...46`
+• `` -> `...47`
+• `` -> `...48`
+• `` -> `...49`
+• `` -> `...50`
+• `` -> `...51`
+• `` -> `...52`
+
+Warning: Substituting strain(s):
+	A/Victoria/2570/2019/H1H1 --> A/Victoria/2570/2019 (H1N1)
+	A/Tasmania/503/2020/H3N2 --> A/Tasmania/503/2020 (H3N2)
+	B/Washsington/02/2019 --> B/Washington/2/2019
+	A/Calfornia/07/2019 (H1N1) --> A/California/7/2019 (H1N1)
+	A/Darwin/09/2021 (H3N2) --> A/Darwin/9/2021 (H3N2)
+
+*** Sheet: QIV2-UIB HI column:  20 ( T ) is non-numeric.
+ 	Data error in row(s): 15 
+	Changing to 'NA'.
+======================================================================
+Processing sheet 9: 'QIV3-CHU HI '
+	Trial=QIV3, Assay=HI
+ 
+New names:
+• `` -> `...1`
+• `` -> `...2`
+• `` -> `...3`
+• `` -> `...4`
+• `` -> `...5`
+• `` -> `...6`
+• `` -> `...7`
+• `` -> `...8`
+• `` -> `...9`
+• `` -> `...10`
+• `` -> `...11`
+• `` -> `...12`
+
+Warning: Substituting strain(s):
+	A/Victoria/2570/2019/H1H1 --> A/Victoria/2570/2019 (H1N1)
+	A/Tasmania/503/2020/H3N2 --> A/Tasmania/503/2020 (H3N2)
+	B/Washsington/02/2019 --> B/Washington/2/2019
+
+======================================================================
+Processing sheet 2: 'QIV1ATW MN'
+	Trial=QIV1, Assay=MN
+ 
+New names:
+• `` -> `...1`
+• `` -> `...2`
+• `` -> `...3`
+• `` -> `...4`
+• `` -> `...5`
+• `` -> `...6`
+• `` -> `...7`
+• `` -> `...8`
+• `` -> `...9`
+• `` -> `...10`
+• `` -> `...11`
+• `` -> `...12`
+
+Warning: Substituting strain(s):
+	A/Victoria/2570/2019/H1H1 --> A/Victoria/2570/2019 (H1N1)
+	A/Tasmania/503/2020/H3N2 --> A/Tasmania/503/2020 (H3N2)
+	B/Washsington/02/2019 --> B/Washington/2/2019
+
+======================================================================
+Processing sheet 6: 'QIV2-UIB MN'
+	Trial=QIV2, Assay=MN
+ 
+New names:
+• `` -> `...1`
+• `` -> `...2`
+• `` -> `...3`
+• `` -> `...4`
+• `` -> `...5`
+• `` -> `...6`
+• `` -> `...7`
+• `` -> `...8`
+• `` -> `...9`
+• `` -> `...10`
+• `` -> `...11`
+• `` -> `...12`
+• `` -> `...13`
+• `` -> `...14`
+• `` -> `...15`
+• `` -> `...16`
+• `` -> `...17`
+• `` -> `...18`
+• `` -> `...19`
+• `` -> `...20`
+• `` -> `...21`
+• `` -> `...22`
+• `` -> `...23`
+• `` -> `...24`
+• `` -> `...25`
+• `` -> `...26`
+• `` -> `...27`
+• `` -> `...28`
+
+Warning: Substituting strain(s):
+	A/Victoria/2570/2019/H1H1 --> A/Victoria/2570/2019 (H1N1)
+	A/Tasmania/503/2020/H3N2 --> A/Tasmania/503/2020 (H3N2)
+	B/Washington/02/2019 --> B/Washington/2/2019
+
+======================================================================
+Processing sheet 10: 'QIV3-CHU MN'
+	Trial=QIV3, Assay=MN
+ 
+New names:
+• `` -> `...1`
+• `` -> `...2`
+• `` -> `...3`
+• `` -> `...4`
+• `` -> `...5`
+• `` -> `...6`
+• `` -> `...7`
+• `` -> `...8`
+• `` -> `...9`
+• `` -> `...10`
+• `` -> `...11`
+• `` -> `...12`
+
+Warning: Substituting strain(s):
+	A/Victoria/2570/2019/H1H1 --> A/Victoria/2570/2019 (H1N1)
+	A/Tasmania/503/2020/H3N2 --> A/Tasmania/503/2020 (H3N2)
+	B/Washsington/02/2019 --> B/Washington/2/2019
+
+======================================================================
+Processing sheet 3: 'QIV1ATW-ELLA'
+	Trial=QIV1, Assay=ELLA
+ 
+New names:
+• `` -> `...1`
+• `` -> `...2`
+• `` -> `...3`
+• `` -> `...4`
+• `` -> `...5`
+• `` -> `...6`
+• `` -> `...7`
+• `` -> `...8`
+• `` -> `...9`
+• `` -> `...10`
+
+Warning: Substituting strain(s):
+	B/NB --> B/H6NB
+
+======================================================================
+Processing sheet 7: 'QIV2UIB ELLA'
+	Trial=QIV2, Assay=ELLA
+ 
+New names:
+• `` -> `...1`
+• `` -> `...2`
+• `` -> `...3`
+• `` -> `...4`
+• `` -> `...5`
+• `` -> `...6`
+• `` -> `...7`
+• `` -> `...8`
+• `` -> `...9`
+• `` -> `...10`
+• `` -> `...11`
+• `` -> `...12`
+• `` -> `...13`
+• `` -> `...14`
+• `` -> `...15`
+• `` -> `...16`
+• `` -> `...17`
+• `` -> `...18`
+• `` -> `...19`
+• `` -> `...20`
+• `` -> `...21`
+• `` -> `...22`
+
+Warning: Substituting strain(s):
+	A/Equine/Prague/56 (H7) +A/Calfornia/07/2019 (N1) --> A/Equine/Prague/1/1956 (H7N7) + A/California/7/2019 (H1N1)
+	A/Turkey/Massachusettes/3740/1965 (H6) + A/Texas/50/2012 (N2) --> A/Turkey/Massachusetts/3740/1965 (H6N2) + A/Texas/50/2012 (H2N2)
+	A/Turkey/Massachusettes/3740/1965 (H6) + B/Yamagata/16/1988 (NB) --> A/Turkey/Massachusetts/3740/1965 (H6N2) + B/Yamagata/16/1988 (NB)
+
+======================================================================
+Processing sheet 11: 'QIV3-CHU ELLA'
+	Trial=QIV3, Assay=ELLA
+ 
+New names:
+• `` -> `...1`
+• `` -> `...2`
+• `` -> `...3`
+• `` -> `...4`
+• `` -> `...5`
+• `` -> `...6`
+• `` -> `...7`
+• `` -> `...8`
+• `` -> `...9`
+• `` -> `...10`
+
+Warning: Substituting strain(s):
+	N1 --> A/H7N1
+	N2 --> A/H6N2
+	NB --> B/H6NB
+
+======================================================================
+Processing sheet 4: 'QIV1ATW ELISA'
+	Trial=QIV1, Assay=ELISA
+ 
+New names:
+• `` -> `...1`
+• `` -> `...2`
+• `` -> `...3`
+• `` -> `...4`
+• `` -> `...5`
+• `` -> `...6`
+• `` -> `...7`
+• `` -> `...8`
+• `` -> `...9`
+• `` -> `...10`
+• `` -> `...11`
+• `` -> `...12`
+• `` -> `...13`
+• `` -> `...14`
+• `` -> `...15`
+• `` -> `...16`
+• `` -> `...17`
+• `` -> `...18`
+• `` -> `...19`
+• `` -> `...20`
+• `` -> `...21`
+• `` -> `...22`
+• `` -> `...23`
+• `` -> `...24`
+• `` -> `...25`
+• `` -> `...26`
+• `` -> `...27`
+• `` -> `...28`
+
+Warning: Substituting strain(s):
+	A/Victoria/2570/2019/H1H1 --> A/Victoria/2570/2019 (H1N1)
+	A/Tasmania/503/2020/H3N2 --> A/Tasmania/503/2020 (H3N2)
+	B/Washington/02/2019 --> B/Washington/2/2019
+	A/Singapore/IFNIMH-16-0019/2016/H3N2 --> A/Singapore/INFIMH-16-0019/2016 (H3N2)
+	A/HongKong/4801/2014/H3N2 --> A/Hong Kong/4801/2014 (H3N2)
+	A/Wisconsin/588/2019/H1N1 --> A/Wisconsin/588/2019 (H1N1)
+	A/Brisbane/02/2018/H1N1 --> A/Brisbane/2/2018 (H1N1)
+	A/Calfornia/07/2019(H1N1) --> A/California/7/2019 (H1N1)
+	B/Washington/02/2019 --> B/Washington/2/2019
+	A/Calfornia/07/2019(H1N1) --> A/California/7/2019 (H1N1)
+
+======================================================================
+Processing sheet 8: 'QIV2-UIB ELISA'
+	Trial=QIV2, Assay=ELISA
+ 
+New names:
+• `` -> `...1`
+• `` -> `...2`
+• `` -> `...3`
+• `` -> `...4`
+• `` -> `...5`
+• `` -> `...6`
+• `` -> `...7`
+• `` -> `...8`
+• `` -> `...9`
+• `` -> `...10`
+• `` -> `...11`
+• `` -> `...12`
+• `` -> `...13`
+• `` -> `...14`
+• `` -> `...15`
+• `` -> `...16`
+• `` -> `...17`
+• `` -> `...18`
+• `` -> `...19`
+• `` -> `...20`
+• `` -> `...21`
+• `` -> `...22`
+• `` -> `...23`
+• `` -> `...24`
+• `` -> `...25`
+• `` -> `...26`
+• `` -> `...27`
+• `` -> `...28`
+• `` -> `...29`
+• `` -> `...30`
+• `` -> `...31`
+• `` -> `...32`
+• `` -> `...33`
+• `` -> `...34`
+• `` -> `...35`
+• `` -> `...36`
+• `` -> `...37`
+• `` -> `...38`
+• `` -> `...39`
+• `` -> `...40`
+
+Warning: Substituting strain(s):
+	A/Victoria/2570/2019/H1H1 --> A/Victoria/2570/2019 (H1N1)
+	A/Wisconsin/588/2019/H1N1 --> A/Wisconsin/588/2019 (H1N1)
+	A/Tasmania/503/2020/H3N2 --> A/Tasmania/503/2020 (H3N2)
+	B/Washington/02/2019 --> B/Washington/2/2019
+	B/Washington/02/2019 --> B/Washington/2/2019
+
+======================================================================
+Processing sheet 12: 'QIV3-CHU ELISA'
+	Trial=QIV3, Assay=ELISA
+ 
+New names:
+• `` -> `...1`
+• `` -> `...2`
+• `` -> `...3`
+• `` -> `...4`
+• `` -> `...5`
+• `` -> `...6`
+• `` -> `...7`
+• `` -> `...8`
+• `` -> `...9`
+• `` -> `...10`
+• `` -> `...11`
+• `` -> `...12`
+
+Warning: Substituting strain(s):
+	A/Victoria/2570/2019/H1H1 --> A/Victoria/2570/2019 (H1N1)
+	A/Tasmania/503/2020/H3N2 --> A/Tasmania/503/2020 (H3N2)
+	B/Washsington/02/2019 --> B/Washington/2/2019
+
+======================================================================
+Writing output file: "Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31_20260317.csv", 11422 rows x 12 columns.
+
+Writing Responder output files:
+	 Responder-QIV1_20260317.csv 
+	 Responder-QIV2_20260317.csv 
+	 Responder-QIV3_20260317.csv 
+====================================================================== 
+Completed. Run-time: 2.090902 secs.
