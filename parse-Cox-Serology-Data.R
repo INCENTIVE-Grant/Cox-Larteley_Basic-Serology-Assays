@@ -921,7 +921,7 @@ for(trial in TrialNames) {
             stopifnot(dat$SubjectID[inxPV0] == resp[[trial]]$SubjectID,
                       dat$SubjectID[inxPV1] == resp[[trial]]$SubjectID,
                       dat$SubjectID[inxPV2] == resp[[trial]]$SubjectID)
-            postVac <- myPMax(dat$Value[inxPV1], dat$Value[inxPV1])
+            postVac <- myPMax(dat$Value[inxPV1], dat$Value[inxPV2])
             inxNA <- is.na(postVac)
             postVac[inxNA] <- dat$Value[inxPV0][inxNA]
 

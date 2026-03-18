@@ -16,13 +16,15 @@ source('Controlled-Vocab.R')
 
 ## Program Name and Version
 ProgramName <- 'compareWithPrevious.R'
-Version <- 'v2.1'
+Version <- 'v2.2'
 
 options(warn=1)
 
 ## GLOBAL Variables
 oldFile <- '../2024-07-18_Zenodo-Upload-Becky-Cox/Incentive_QIV1_2_3-HI_Final_v1.0_2024-09-09.csv'
-newFile <- 'Cox-Lab-Serology_QIV-1-2-3_Updated_2025-03-31_20260204.csv'
+## Pick the latest CSV file for comparison
+csvFiles <- sort(list.files(pattern='^Cox-Lab.*\\.csv$'), decreasing=TRUE)
+newFile <- csvFiles[1]
 
 ## Prepare output files: logging and plots
 today <-  format(Sys.time(), "_%Y%m%d")
@@ -116,6 +118,10 @@ inx <- new$Assay == 'HI' & new$Trial == 'QIV1'
 cat("New values for HI:\n")
 print(table(new$Day[inx]))
 
+## Do I need to "fix" the Subject names of the old data set?
+oldNames <- gsub('^QIV[123]', '', gsub('-', '', old$SubjectID))
+old$SubjectID <- oldNames
+
 ## Compare HI Day 0 and Day 28
 par(mfrow=c(2,2))
 for(trial in c('QIV1', 'QIV2', 'QIV3')) {
@@ -161,7 +167,7 @@ for(trial in c('QIV1', 'QIV2', 'QIV3')) {
             ## Perform a numerical comparison, including checking the NA matches NA
             inx <- myEquals(old$Value[inxO], new$Value[inxN])
             if(any(inx != TRUE) ) {
-                cat('Not all values are equal: Trial,', trial, ', Day,', day, ', Strain,', strain, "\n")
+                cat('\nNot all values are equal: Trial =', trial, ', Day =', day, ', Strain =', strain, "\n")
                 print(cbind(old[inxO, ], NewValue=new[inxN, 'Value'])[!inx,])
             }
         }
